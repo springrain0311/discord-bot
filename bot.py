@@ -11,9 +11,15 @@ import datetime
 # =========================
 # 🔐 환경 변수
 # =========================
-TOKEN = os.environ.get("DISCORD_TOKEN")
-CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
+import os
 
+TOKEN = os.environ.get("DISCORD_TOKEN")
+CHANNEL_ID = os.environ.get("CHANNEL_ID")
+
+print("TOKEN:", TOKEN)
+print("CHANNEL_ID:", CHANNEL_ID)
+
+CHANNEL_ID = int(CHANNEL_ID)
 # =========================
 # 🌐 웹서버 (Render 유지용)
 # =========================
