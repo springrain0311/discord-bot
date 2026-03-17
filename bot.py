@@ -1,90 +1,42 @@
-import discord
-import gspread
-import os
-import asyncio
-import json
-from oauth2client.service_account import ServiceAccountCredentials
+ranking_text = ""
 
-# 🔐 환경변수 가져오기
-TOKEN = os.environ.get("DISCORD_TOKEN")
-CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
+# 🏆 TOP 3
+ranking_text += "🏆 **TOP 3**\n"
+for i in range(1, 4):
+    rank = int(data[i][0])
+    name = data[i][1]
+    score = int(data[i][2])
 
-# 🔐 구글 인증 (Secrets에서 JSON 불러오기)
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/drive"
-]
+    icons = ["🥇", "🥈", "🥉"]
+    icon = icons[i-1]
 
-creds_dict = json.loads(os.environ.get("GOOGLE_CREDENTIALS"))
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-gc = gspread.authorize(creds)
+    ranking_text += f"{icon} **{rank}위** │ `{name}`\n　　└ 💖 **{score:,}**\n\n"
 
-# 디코 설정
-intents = discord.Intents.default()
-client = discord.Client(intents=intents)
+ranking_text += "━━━━━━━━━━━━━━━━━━\n\n"
 
+# 🌸 4~10위
+for i in range(4, 11):
+    rank = int(data[i][0])
+    name = data[i][1]
+    score = int(data[i][2])
 
-async def send_ranking():
-    print("랭킹 전송 시작")
+    ranking_text += f"🌸 {rank:>2}위 │ `{name}` │ {score:,}\n"
 
-    sheet = gc.open("봄비길드 수로랭킹").sheet1
-    data = sheet.get_all_values()
+ranking_text += "\n"
 
-    print("데이터 길이:", len(data))
+# ✨ 11~20위
+for i in range(11, 21):
+    rank = int(data[i][0])
+    name = data[i][1]
+    score = int(data[i][2])
 
-    ranking_text = ""
-
-    for i in range(1, 21):
-        rank = int(data[i][0])
-        name = data[i][1]
-        score = data[i][2]
-
-        if rank == 1:
-            icon = "🥇"
-        elif rank == 2:
-            icon = "🥈"
-        elif rank == 3:
-            icon = "🥉"
-        elif 4 <= rank <= 10:
-            icon = "🌸"
-        else:
-            icon = "✨"
-
-        ranking_text += f"{icon} {rank}위 {name} │ {score}\n"
-
-    embed = discord.Embed(
-        title="🌸 봄비길드 수로 랭킹 TOP20 🌸",
-        description=ranking_text,
-        color=0xff99cc
-    )
-
-    channel = client.get_channel(CHANNEL_ID)
-
-    if channel is None:
-        print("❌ 채널 못찾음")
-        return
-
-    await channel.send(embed=embed)
-    print("✅ 메시지 전송 완료")
+    ranking_text += f"✨ {rank:>2}위 │ `{name}` │ {score:,}\n"
 
 
-@client.event
-async def on_ready():
-    print(f"✅ 로그인됨: {client.user}")
+embed = discord.Embed(
+    title="🌸 봄비길드 수로 랭킹 🌸",
+    description=ranking_text,
+    color=0xffb6c1
+)
 
-    await send_ranking()
-
-    # 👉 실행 끝나면 종료 (GitHub Actions용)
-    await client.close()
-
-
-async def main():
-    if TOKEN is None:
-        print("❌ DISCORD_TOKEN 없음")
-        return
-
-    await client.start(TOKEN)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+embed.set_footer(text="매주 목요일 00:00 자동 갱신 🌙")
