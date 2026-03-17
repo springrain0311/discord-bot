@@ -10,8 +10,8 @@ from discord.ext import tasks
 # =========================
 # 🔐 환경 변수 (Render에서 설정)
 # =========================
-TOKEN = os.environ.get("DISCORD_TOKEN")
-CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
+TOKEN = os.environ.get("MTQ4MzIzMTU2NzA5MzU2MzY0NQ.G2bVna.8V-lmxRyh-4voEEEkurOyFC9n9bLtqjdAZISGQ")
+CHANNEL_ID = int(os.environ.get("1483220706165788672"))
 
 # =========================
 # 🌐 가짜 웹서버 (무료 유지용)
