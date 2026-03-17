@@ -1,42 +1,47 @@
-ranking_text = ""
+async def send_ranking():
+    print("랭킹 전송 시작")
 
-# 🏆 TOP 3
-ranking_text += "🏆 **TOP 3**\n"
-for i in range(1, 4):
-    rank = int(data[i][0])
-    name = data[i][1]
-    score = int(data[i][2])
+    sheet = gc.open("봄비길드 수로랭킹").sheet1
+    data = sheet.get_all_values()
 
-    icons = ["🥇", "🥈", "🥉"]
-    icon = icons[i-1]
+    # 👉 여기부터 ranking_text 시작
+    ranking_text = ""
 
-    ranking_text += f"{icon} **{rank}위** │ `{name}`\n　　└ 💖 **{score:,}**\n\n"
+    # 🏆 TOP 3
+    ranking_text += "🏆 **TOP 3**\n"
+    for i in range(1, 4):
+        rank = int(data[i][0])
+        name = data[i][1]
+        score = int(data[i][2])
 
-ranking_text += "━━━━━━━━━━━━━━━━━━\n\n"
+        icons = ["🥇", "🥈", "🥉"]
+        icon = icons[i-1]
 
-# 🌸 4~10위
-for i in range(4, 11):
-    rank = int(data[i][0])
-    name = data[i][1]
-    score = int(data[i][2])
+        ranking_text += f"{icon} **{rank}위** │ `{name}`\n　　└ 💖 **{score:,}**\n\n"
 
-    ranking_text += f"🌸 {rank:>2}위 │ `{name}` │ {score:,}\n"
+    ranking_text += "━━━━━━━━━━━━━━━━━━\n\n"
 
-ranking_text += "\n"
+    for i in range(4, 11):
+        rank = int(data[i][0])
+        name = data[i][1]
+        score = int(data[i][2])
 
-# ✨ 11~20위
-for i in range(11, 21):
-    rank = int(data[i][0])
-    name = data[i][1]
-    score = int(data[i][2])
+        ranking_text += f"🌸 {rank:>2}위 │ `{name}` │ {score:,}\n"
 
-    ranking_text += f"✨ {rank:>2}위 │ `{name}` │ {score:,}\n"
+    ranking_text += "\n"
 
+    for i in range(11, 21):
+        rank = int(data[i][0])
+        name = data[i][1]
+        score = int(data[i][2])
 
-embed = discord.Embed(
-    title="🌸 봄비길드 수로 랭킹 🌸",
-    description=ranking_text,
-    color=0xffb6c1
-)
+        ranking_text += f"✨ {rank:>2}위 │ `{name}` │ {score:,}\n"
 
-embed.set_footer(text="매주 목요일 00:00 자동 갱신 🌙")
+    embed = discord.Embed(
+        title="🌸 봄비길드 수로 랭킹 🌸",
+        description=ranking_text,
+        color=0xffb6c1
+    )
+
+    channel = client.get_channel(CHANNEL_ID)
+    await channel.send(embed=embed)
