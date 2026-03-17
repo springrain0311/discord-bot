@@ -79,7 +79,7 @@ async def send_ranking():
         color=0xff99cc
     )
 
-    channel = client.get_channel(CHANNEL_ID)
+    channel = client.get_channel(1483220706165788672)
     if channel:
         await channel.send(embed=embed)
     else:
