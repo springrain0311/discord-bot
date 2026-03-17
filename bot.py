@@ -1,35 +1,61 @@
 import discord
 import gspread
-import schedule
-import time
-from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
+import os
+from flask import Flask
+from threading import Thread
+from oauth2client.service_account import ServiceAccountCredentials
+from discord.ext import tasks
 
-TOKEN = "MTQ4MzIzMTU2NzA5MzU2MzY0NQ.G2bVna.8V-lmxRyh-4voEEEkurOyFC9n9bLtqjdAZISGQ"
-CHANNEL_ID = 123456789012345678
+# =========================
+# 🔐 환경 변수 (Render에서 설정)
+# =========================
+TOKEN = os.environ.get("DISCORD_TOKEN")
+CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
 
+# =========================
+# 🌐 가짜 웹서버 (무료 유지용)
+# =========================
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Bot is running"
+
+def run_web():
+    app.run(host="0.0.0.0", port=10000)
+
+Thread(target=run_web).start()
+
+# =========================
+# 📊 구글 시트 연결
+# =========================
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
 ]
-
-import os
 
 creds = ServiceAccountCredentials.from_json_keyfile_name(
     os.path.join(os.getcwd(), "service_account.json"), scope
 )
 gc = gspread.authorize(creds)
 
+# =========================
+# 🤖 디스코드 설정
+# =========================
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
+# =========================
+# 📤 랭킹 보내기 함수
+# =========================
 async def send_ranking():
     sheet = gc.open("봄비길드 수로랭킹").sheet1
     data = sheet.get_all_values()
 
     ranking_text = ""
 
-    for i in range(1, 21):
+    for i in range(1, min(21, len(data))):
         rank = int(data[i][0])
         name = data[i][1]
         score = data[i][2]
@@ -54,23 +80,31 @@ async def send_ranking():
     )
 
     channel = client.get_channel(CHANNEL_ID)
-    await channel.send(embed=embed)
+    if channel:
+        await channel.send(embed=embed)
+    else:
+        print("채널 못찾음")
 
-def job():
-    asyncio.run(send_ranking())
+# =========================
+# ⏰ 매주 목요일 00:00 실행
+# =========================
+@tasks.loop(minutes=1)
+async def scheduler():
+    now = asyncio.get_event_loop().time()
 
+    import datetime
+    kst = datetime.datetime.now()
+
+    if kst.weekday() == 3 and kst.hour == 0 and kst.minute == 0:
+        await send_ranking()
+
+# =========================
+# 🚀 봇 시작
+# =========================
 @client.event
 async def on_ready():
-    print("봇 실행됨")
+    print(f"로그인됨: {client.user}")
 
-    # 테스트용 (원하면 제거 가능)
-    await send_ranking()
-
-    # 👉 목요일 00:00 예약
-    schedule.every().thursday.at("00:00").do(job)
-
-    while True:
-        schedule.run_pending()
-        await asyncio.sleep(1)
+    scheduler.start()
 
 client.run(TOKEN)
