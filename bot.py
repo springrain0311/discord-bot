@@ -1,0 +1,74 @@
+import discord
+import gspread
+import schedule
+import time
+from oauth2client.service_account import ServiceAccountCredentials
+import asyncio
+
+TOKEN = "MTQ4MzIzMTU2NzA5MzU2MzY0NQ.G2bVna.8V-lmxRyh-4voEEEkurOyFC9n9bLtqjdAZISGQ"
+CHANNEL_ID = 123456789012345678
+
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive"
+]
+
+creds = ServiceAccountCredentials.from_json_keyfile_name(
+    "service_account.json", scope
+)
+gc = gspread.authorize(creds)
+
+intents = discord.Intents.default()
+client = discord.Client(intents=intents)
+
+async def send_ranking():
+    sheet = gc.open("봄비길드 수로랭킹").sheet1
+    data = sheet.get_all_values()
+
+    ranking_text = ""
+
+    for i in range(1, 21):
+        rank = int(data[i][0])
+        name = data[i][1]
+        score = data[i][2]
+
+        if rank == 1:
+            icon = "🥇"
+        elif rank == 2:
+            icon = "🥈"
+        elif rank == 3:
+            icon = "🥉"
+        elif 4 <= rank <= 10:
+            icon = "🌸"
+        else:
+            icon = "✨"
+
+        ranking_text += f"{icon} {rank}위 {name} │ {score}\n"
+
+    embed = discord.Embed(
+        title="🌸 봄비길드 수로 랭킹 TOP20 🌸",
+        description=ranking_text,
+        color=0xff99cc
+    )
+
+    channel = client.get_channel(CHANNEL_ID)
+    await channel.send(embed=embed)
+
+def job():
+    asyncio.run(send_ranking())
+
+@client.event
+async def on_ready():
+    print("봇 실행됨")
+
+    # 테스트용 (원하면 제거 가능)
+    await send_ranking()
+
+    # 👉 목요일 00:00 예약
+    schedule.every().thursday.at("00:00").do(job)
+
+    while True:
+        schedule.run_pending()
+        await asyncio.sleep(1)
+
+client.run(TOKEN)
