@@ -22,8 +22,12 @@ client = discord.Client(intents=intents)
 
 
 async def send_ranking():
+    print("랭킹 전송 시작")
+
     sheet = gc.open("봄비길드 수로랭킹").sheet1
     data = sheet.get_all_values()
+
+    print("데이터 길이:", len(data))
 
     ranking_text = ""
 
@@ -51,15 +55,21 @@ async def send_ranking():
         color=0xff99cc
     )
 
-    channel = client.get_channel(CHANNEL_ID)
+    channel = await client.fetch_channel(CHANNEL_ID)  # 🔥 이거로 변경
+    print("채널 fetch:", channel)
+
     await channel.send(embed=embed)
 
 
 @client.event
 async def on_ready():
     print(f"로그인됨: {client.user}")
+
+    channel = client.get_channel(CHANNEL_ID)
+    print("채널:", channel)
+
     await send_ranking()
-    await client.close()  # 👉 보내고 바로 종료
+    await client.close()
 
 
 async def main():
