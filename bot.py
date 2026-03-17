@@ -1,17 +1,12 @@
 import discord
 import gspread
 import os
+import asyncio
 from oauth2client.service_account import ServiceAccountCredentials
 
-# =========================
-# 환경변수
-# =========================
 TOKEN = os.environ.get("DISCORD_TOKEN")
 CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
 
-# =========================
-# 구글 시트 인증
-# =========================
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
@@ -22,15 +17,10 @@ creds = ServiceAccountCredentials.from_json_keyfile_name(
 )
 gc = gspread.authorize(creds)
 
-# =========================
-# 디스코드 봇 설정
-# =========================
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
-# =========================
-# 랭킹 전송 함수
-# =========================
+
 async def send_ranking():
     sheet = gc.open("봄비길드 수로랭킹").sheet1
     data = sheet.get_all_values()
@@ -64,16 +54,17 @@ async def send_ranking():
     channel = client.get_channel(CHANNEL_ID)
     await channel.send(embed=embed)
 
-# =========================
-# 봇 시작 시 실행
-# =========================
+
 @client.event
 async def on_ready():
     print(f"로그인됨: {client.user}")
-
     await send_ranking()
+    await client.close()  # 👉 보내고 바로 종료
 
-# =========================
-# 실행
-# =========================
-client.run(TOKEN)
+
+async def main():
+    await client.start(TOKEN)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
