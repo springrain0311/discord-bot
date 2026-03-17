@@ -13,8 +13,10 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
+import os
+
 creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "service_account.json", scope
+    os.path.join(os.getcwd(), "service_account.json"), scope
 )
 gc = gspread.authorize(creds)
 
