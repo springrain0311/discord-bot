@@ -1,6 +1,8 @@
 name: Run Discord Bot
 
 on:
+  schedule:
+    - cron: '0 15 * * 3'  # 한국시간 목요일 00:00
   workflow_dispatch:
 
 jobs:
