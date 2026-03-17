@@ -6,15 +6,16 @@ from flask import Flask
 from threading import Thread
 from oauth2client.service_account import ServiceAccountCredentials
 from discord.ext import tasks
+import datetime
 
 # =========================
-# 🔐 환경 변수 (Render에서 설정)
+# 🔐 환경 변수
 # =========================
 TOKEN = os.environ.get("MTQ4MzIzMTU2NzA5MzU2MzY0NQ.G2bVna.8V-lmxRyh-4voEEEkurOyFC9n9bLtqjdAZISGQ")
 CHANNEL_ID = int(os.environ.get("1483220706165788672"))
 
 # =========================
-# 🌐 가짜 웹서버 (무료 유지용)
+# 🌐 웹서버 (Render 유지용)
 # =========================
 app = Flask(__name__)
 
@@ -47,7 +48,7 @@ intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
 # =========================
-# 📤 랭킹 보내기 함수
+# 📤 랭킹 전송
 # =========================
 async def send_ranking():
     sheet = gc.open("봄비길드 수로랭킹").sheet1
@@ -79,7 +80,7 @@ async def send_ranking():
         color=0xff99cc
     )
 
-    channel = client.get_channel(1483220706165788672)
+    channel = client.get_channel(CHANNEL_ID)
     if channel:
         await channel.send(embed=embed)
     else:
@@ -90,21 +91,18 @@ async def send_ranking():
 # =========================
 @tasks.loop(minutes=1)
 async def scheduler():
-    now = asyncio.get_event_loop().time()
+    now = datetime.datetime.now()
 
-    import datetime
-    kst = datetime.datetime.now()
-
-    if kst.weekday() == 3 and kst.hour == 0 and kst.minute == 0:
+    if now.weekday() == 3 and now.hour == 0 and now.minute == 0:
+        print("랭킹 전송 실행")
         await send_ranking()
 
 # =========================
-# 🚀 봇 시작
+# 🚀 시작
 # =========================
 @client.event
 async def on_ready():
     print(f"로그인됨: {client.user}")
-
     scheduler.start()
 
 client.run(TOKEN)
