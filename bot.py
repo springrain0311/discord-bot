@@ -27,8 +27,6 @@ async def send_ranking():
     sheet = gc.open("봄비길드 수로랭킹").sheet1
     data = sheet.get_all_values()
 
-    print("데이터 길이:", len(data))
-
     ranking_text = ""
 
     for i in range(1, 21):
@@ -55,25 +53,18 @@ async def send_ranking():
         color=0xff99cc
     )
 
-    channel = await client.fetch_channel(CHANNEL_ID)  # 🔥 이거로 변경
-    print("채널 fetch:", channel)
-
+    channel = await client.fetch_channel(CHANNEL_ID)
     await channel.send(embed=embed)
 
 
-@client.event
-async def on_ready():
-    print(f"로그인됨: {client.user}")
-
-    channel = client.get_channel(CHANNEL_ID)
-    print("채널:", channel)
+async def main():
+    await client.login(TOKEN)
+    print("로그인 완료")
 
     await send_ranking()
+
     await client.close()
-
-
-async def main():
-    await client.start(TOKEN)
+    print("종료 완료")
 
 
 if __name__ == "__main__":
