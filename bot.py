@@ -36,11 +36,21 @@ async def send_ranking():
     current_data = current_sheet.get_all_values()
     old_data = backup_sheet.get_all_values()
 
+    # 🔥 오늘 날짜 (중복 방지용)
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+
+    # 👉 이미 보냈으면 종료
+    if old_data and old_data[0][0] == today:
+        print("⏭ 이미 전송됨 → 종료")
+        return
+
+    # 👉 이전 데이터 정리
     old_rank = {}
     for i in range(1, len(old_data)):
-        name = old_data[i][1]
-        rank = int(old_data[i][0])
-        old_rank[name] = rank
+        if len(old_data[i]) >= 2:
+            name = old_data[i][1]
+            rank = int(old_data[i][0])
+            old_rank[name] = rank
 
     ranking_text = ""
 
@@ -64,7 +74,7 @@ async def send_ranking():
 
     ranking_text += "━━━━━━━━━━━━━━━━━━\n\n"
 
-    # 🌸 4~10
+    # 🌸 4~10위
     for i in range(4, 11):
         rank = int(current_data[i][0])
         name = current_data[i][1]
@@ -80,7 +90,7 @@ async def send_ranking():
 
     ranking_text += "\n"
 
-    # ✨ 11~20
+    # ✨ 11~20위
     for i in range(11, 21):
         rank = int(current_data[i][0])
         name = current_data[i][1]
@@ -109,25 +119,20 @@ async def send_ranking():
     await channel.send(embed=embed)
     print("✅ 메시지 전송 완료")
 
-    # 📦 백업 저장
+    # 🔥 백업 저장 (맨 위에 날짜 추가)
     backup_sheet.clear()
-    backup_sheet.update(current_data)
+
+    new_backup = [[today]]
+    new_backup.extend(current_data)
+
+    backup_sheet.update(new_backup)
+
     print("📦 백업 완료")
 
 
 @client.event
 async def on_ready():
     print(f"✅ 로그인됨: {client.user}")
-
-    # 🔥 중복 방지 (핵심)
-    now = datetime.datetime.utcnow()
-
-    if now.hour != 15 or now.minute != 0:
-        print("⏭ 스케줄 시간 아님 → 종료")
-        await client.close()
-        return
-
-    print("⏰ 정확한 실행 시간 → 진행")
 
     await send_ranking()
 
