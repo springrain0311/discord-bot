@@ -3,7 +3,6 @@ import gspread
 import os
 import asyncio
 import json
-import datetime
 import sys
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -53,12 +52,8 @@ async def send_ranking():
     current_data = current_sheet.get_all_values()
     old_data = backup_sheet.get_all_values()
 
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
-
-    if old_data and old_data[0][0] == today:
-        print("⏭ 이미 전송됨 → 종료")
-        sys.stdout.flush()
-        return
+    print("📥 데이터 읽기 완료")
+    sys.stdout.flush()
 
     old_rank = {}
     for i in range(1, len(old_data)):
@@ -83,7 +78,7 @@ async def send_ranking():
             diff = old_rank[name] - rank
             change = f" ▲{diff}" if diff > 0 else f" ▼{abs(diff)}" if diff < 0 else ""
         else:
-            change = " NEW"
+            change = ""
 
         ranking_text += f"{icon} **{rank}위** │ `{name}`{change}\n　　└ 💖 **{score:,}**\n\n"
 
@@ -99,7 +94,7 @@ async def send_ranking():
             diff = old_rank[name] - rank
             change = f" ▲{diff}" if diff > 0 else f" ▼{abs(diff)}" if diff < 0 else ""
         else:
-            change = " NEW"
+            change = ""
 
         ranking_text += f"🌸 {rank:>2}위 │ `{name}`{change} │ {score:,}\n"
 
@@ -115,7 +110,7 @@ async def send_ranking():
             diff = old_rank[name] - rank
             change = f" ▲{diff}" if diff > 0 else f" ▼{abs(diff)}" if diff < 0 else ""
         else:
-            change = " NEW"
+            change = ""
 
         ranking_text += f"✨ {rank:>2}위 │ `{name}`{change} │ {score:,}\n"
 
@@ -140,10 +135,9 @@ async def send_ranking():
     print("✅ 메시지 전송 완료")
     sys.stdout.flush()
 
+    # 🔥 백업 저장 (날짜 없이!)
     backup_sheet.clear()
-    new_backup = [[today]]
-    new_backup.extend(current_data)
-    backup_sheet.update(new_backup)
+    backup_sheet.update(current_data)
 
     print("📦 백업 완료")
     sys.stdout.flush()
