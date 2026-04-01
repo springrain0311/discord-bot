@@ -4,9 +4,11 @@ import os
 import asyncio
 import json
 import datetime
+import sys
 from oauth2client.service_account import ServiceAccountCredentials
 
 print("🔥 실행 시작")
+sys.stdout.flush()
 
 # 🔐 환경변수
 TOKEN = os.environ.get("DISCORD_TOKEN")
@@ -18,33 +20,46 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
+print("📡 구글 인증 시도")
+sys.stdout.flush()
+
 creds_dict = json.loads(os.environ.get("GOOGLE_CREDENTIALS"))
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 gc = gspread.authorize(creds)
 
+print("✅ 구글 인증 완료")
+sys.stdout.flush()
+
 intents = discord.Intents.default()
+intents.message_content = True
+
 client = discord.Client(intents=intents)
 
 
 async def send_ranking():
     print("🚀 랭킹 전송 시작")
+    sys.stdout.flush()
+
+    print("📡 시트 열기 시도")
+    sys.stdout.flush()
 
     sheet = gc.open("봄비길드 수로랭킹")
     current_sheet = sheet.sheet1
     backup_sheet = sheet.get_worksheet(1)
 
+    print("✅ 시트 열림")
+    sys.stdout.flush()
+
     current_data = current_sheet.get_all_values()
     old_data = backup_sheet.get_all_values()
 
-    # 🔥 오늘 날짜 (중복 방지용)
     today = datetime.datetime.now().strftime("%Y-%m-%d")
 
-    # 👉 이미 보냈으면 종료
     if old_data and old_data[0][0] == today:
         print("⏭ 이미 전송됨 → 종료")
+        sys.stdout.flush()
         return
 
-    # 👉 이전 데이터 정리
     old_rank = {}
     for i in range(1, len(old_data)):
         if len(old_data[i]) >= 2:
@@ -110,42 +125,51 @@ async def send_ranking():
         color=0xffb6c1
     )
 
+    print("📢 채널 가져오기")
+    sys.stdout.flush()
+
     channel = client.get_channel(CHANNEL_ID)
 
     if channel is None:
         print("❌ 채널 못찾음")
+        sys.stdout.flush()
         return
 
     await channel.send(embed=embed)
+
     print("✅ 메시지 전송 완료")
+    sys.stdout.flush()
 
-    # 🔥 백업 저장 (맨 위에 날짜 추가)
     backup_sheet.clear()
-
     new_backup = [[today]]
     new_backup.extend(current_data)
-
     backup_sheet.update(new_backup)
 
     print("📦 백업 완료")
+    sys.stdout.flush()
 
 
 @client.event
 async def on_ready():
     print(f"✅ 로그인됨: {client.user}")
+    sys.stdout.flush()
 
     await send_ranking()
 
     await client.close()
     print("🛑 봇 종료")
+    sys.stdout.flush()
 
 
 async def main():
     if not TOKEN:
         print("❌ TOKEN 없음")
+        sys.stdout.flush()
         return
 
     print("🚀 봇 시작")
+    sys.stdout.flush()
+
     await client.start(TOKEN)
 
 
