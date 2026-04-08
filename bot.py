@@ -41,12 +41,17 @@ async def send_ranking():
     sys.stdout.flush()
 
     # 🔥 시간 체크 (핵심)
-    now = datetime.datetime.now()
+now = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
 
-    # 목요일만 실행
-    if now.weekday() != 3:
-        print("⏭ 목요일 아님 → 종료")
-        return
+# 목요일 체크
+if now.weekday() != 3:
+    print("⏭ 목요일 아님 → 종료")
+    return
+
+# 00시 체크
+if now.hour != 0 or now.minute > 10:
+    print("⏭ 00시 범위 아님 → 종료")
+    return
 
     # 00:00 ~ 00:10 사이만 허용
     if now.hour != 0 or now.minute > 10:
