@@ -40,18 +40,18 @@ async def send_ranking():
     print("🚀 랭킹 전송 시작")
     sys.stdout.flush()
 
-    # 🔥 시간 체크 (핵심)
-now = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
+    # 🔥 한국시간 기준으로 변환
+    now = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
 
-# 목요일만 실행
-if now.weekday() != 3:
-    print("⏭ 목요일 아님 → 종료")
-    return
+    # 목요일만 실행
+    if now.weekday() != 3:
+        print("⏭ 목요일 아님 → 종료")
+        return
 
-# 00시만 허용
-if now.hour != 0:
-    print("⏭ 00시 아님 → 종료")
-    return
+    # 00시만 허용
+    if now.hour != 0:
+        print("⏭ 00시 아님 → 종료")
+        return
 
     print("⏰ 전송 가능 시간")
     sys.stdout.flush()
@@ -63,7 +63,7 @@ if now.hour != 0:
     current_data = current_sheet.get_all_values()
     old_data = backup_sheet.get_all_values()
 
-    # 🔥 중복 방지
+    # 🔥 중복 방지 (하루 1번)
     today = now.strftime("%Y-%m-%d")
     if old_data and old_data[0][0] == today:
         print("⏭ 이미 전송됨 → 종료")
@@ -145,7 +145,7 @@ if now.hour != 0:
     print("✅ 메시지 전송 완료")
     sys.stdout.flush()
 
-    # 🔥 백업 + 날짜 저장 (중복 방지용)
+    # 🔥 백업 + 날짜 저장
     backup_sheet.clear()
 
     new_backup = [[today]]
