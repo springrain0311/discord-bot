@@ -40,7 +40,7 @@ async def send_ranking():
     print("🚀 랭킹 전송 시작")
     sys.stdout.flush()
 
-    # 🔥 한국시간 기준으로 변환
+    # 🔥 한국시간 기준
     now = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
 
     # 목요일만 실행
@@ -48,7 +48,7 @@ async def send_ranking():
         print("⏭ 목요일 아님 → 종료")
         return
 
-    # 00시만 허용
+    # 00시만 실행
     if now.hour != 0:
         print("⏭ 00시 아님 → 종료")
         return
@@ -56,25 +56,37 @@ async def send_ranking():
     print("⏰ 전송 가능 시간")
     sys.stdout.flush()
 
+    # 📡 시트 열기
     sheet = gc.open("봄비길드 수로랭킹")
     current_sheet = sheet.sheet1
     backup_sheet = sheet.get_worksheet(1)
 
-    current_data = current_sheet.get_all_values()
-    old_data = backup_sheet.get_all_values()
+    print("📥 데이터 읽기 시작")
+    sys.stdout.flush()
 
-    # 🔥 중복 방지 (하루 1번)
+    # 🔥 속도 개선 (핵심)
+    current_data = current_sheet.get("A1:C21")
+    old_data = backup_sheet.get("A1:C21")
+
+    print("✅ 데이터 읽기 완료")
+    sys.stdout.flush()
+
+    # 🔥 중복 방지
     today = now.strftime("%Y-%m-%d")
     if old_data and old_data[0][0] == today:
         print("⏭ 이미 전송됨 → 종료")
         return
 
+    # 📊 이전 랭킹 저장
     old_rank = {}
     for i in range(1, len(old_data)):
         if len(old_data[i]) >= 2:
-            name = old_data[i][1]
-            rank = int(old_data[i][0])
-            old_rank[name] = rank
+            try:
+                name = old_data[i][1]
+                rank = int(old_data[i][0])
+                old_rank[name] = rank
+            except:
+                continue
 
     ranking_text = ""
 
@@ -128,6 +140,7 @@ async def send_ranking():
 
         ranking_text += f"✨ {rank:>2}위 │ `{name}`{change} │ {score:,}\n"
 
+    # 📢 디스코드 전송
     embed = discord.Embed(
         title="🌸 봄비길드 수로 랭킹 🌸",
         description=ranking_text,
@@ -145,7 +158,7 @@ async def send_ranking():
     print("✅ 메시지 전송 완료")
     sys.stdout.flush()
 
-    # 🔥 백업 + 날짜 저장
+    # 🔥 백업 저장 (날짜 포함)
     backup_sheet.clear()
 
     new_backup = [[today]]
